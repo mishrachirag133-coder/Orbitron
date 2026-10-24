@@ -2,11 +2,11 @@ import React from 'react';
 import { NavLink } from 'react-router-dom';
 import { 
   LayoutDashboard, 
-  UploadCloud, 
+  Search, 
   FolderArchive, 
-  Layers, 
-  Info,
-  CheckCircle2
+  CheckCircle2, 
+  Target,
+  Info
 } from 'lucide-react';
 import { useJobs } from '../../hooks/useJobs';
 
@@ -22,33 +22,33 @@ export const Sidebar: React.FC = () => {
   const navItems = [
     {
       to: '/',
-      label: 'Dashboard',
+      label: 'Dashboard Overview',
       icon: LayoutDashboard,
       badge: null,
     },
     {
       to: '/new',
-      label: 'Upload Image',
-      icon: UploadCloud,
-      badge: 'New',
+      label: 'Select AOI & Search',
+      icon: Search,
+      badge: 'STAC',
       badgeColor: 'bg-emerald-50 text-emerald-700 border-emerald-200',
     },
     {
       to: '/jobs',
-      label: 'Imagery Library',
+      label: 'Scene Registry',
       icon: FolderArchive,
-      badge: activeCount > 0 ? `${activeCount} running` : `${totalCount}`,
+      badge: activeCount > 0 ? `${activeCount} in flight` : `${totalCount}`,
       badgeColor: activeCount > 0 ? 'bg-blue-50 text-blue-700 border-blue-200' : 'bg-slate-100 text-slate-600 border-slate-200',
     },
   ];
 
   return (
-    <aside className="w-60 border-r border-slate-200 bg-white p-4 hidden md:flex flex-col justify-between shrink-0">
+    <aside className="w-60 border-r border-slate-200 bg-white p-4 hidden md:flex flex-col justify-between shrink-0 shadow-xs">
       <div className="space-y-6">
         {/* Navigation list */}
         <div className="space-y-1">
           <div className="text-[11px] font-semibold text-slate-400 uppercase tracking-wider px-3 mb-2">
-            Main Menu
+            Intelligence Console
           </div>
           {navItems.map((item) => (
             <NavLink
@@ -68,7 +68,7 @@ export const Sidebar: React.FC = () => {
                 <span>{item.label}</span>
               </div>
               {item.badge && (
-                <span className={`text-[10px] px-2 py-0.5 rounded-full border font-medium ${item.badgeColor}`}>
+                <span className={`text-[10px] px-2 py-0.5 rounded-full border font-mono ${item.badgeColor}`}>
                   {item.badge}
                 </span>
               )}
@@ -76,51 +76,56 @@ export const Sidebar: React.FC = () => {
           ))}
         </div>
 
-        {/* Friendly User Guide / Explanation Card */}
+        {/* Cloud Breaker Mission Architecture Panel */}
         <div className="p-3.5 rounded-xl bg-slate-50 border border-slate-200/80 space-y-2.5">
-          <div className="flex items-center gap-1.5 text-xs font-semibold text-slate-800">
-            <Info className="w-3.5 h-3.5 text-slate-500" />
-            <span>How it Works</span>
+          <div className="flex items-center justify-between">
+            <span className="text-xs font-bold text-slate-800 flex items-center gap-1.5">
+              <Target className="w-3.5 h-3.5 text-emerald-600" />
+              <span>Core Architecture</span>
+            </span>
+            <span className="text-[9px] font-mono font-medium px-1.5 py-0.2 rounded bg-emerald-100 text-emerald-800 border border-emerald-200">
+              S2-L2A
+            </span>
           </div>
 
-          <div className="space-y-2 text-[11px] text-slate-600">
+          <div className="space-y-2 text-[11px] text-slate-600 leading-relaxed">
             <div className="flex items-start gap-2">
-              <span className="w-2 h-2 rounded-full bg-emerald-500 mt-1 shrink-0" />
+              <span className="w-2 h-2 rounded-full bg-emerald-600 mt-1 shrink-0" />
               <div>
-                <span className="font-medium text-slate-800">Clear Ground:</span>
-                <p className="text-slate-500 text-[10px] leading-tight">High quality surface pixels ready for GIS and NDVI analysis.</p>
+                <strong className="text-slate-800">AOI Window Reads:</strong>
+                <p className="text-[10px] text-slate-500">Streams COG rasters via HTTP range requests without downloading 100km tiles.</p>
               </div>
             </div>
 
             <div className="flex items-start gap-2">
-              <span className="w-2 h-2 rounded-full bg-sky-500 mt-1 shrink-0" />
+              <span className="w-2 h-2 rounded-full bg-amber-500 mt-1 shrink-0" />
               <div>
-                <span className="font-medium text-slate-800">Cloud & Cirrus:</span>
-                <p className="text-slate-500 text-[10px] leading-tight">Accurately detected and masked to avoid distorted measurements.</p>
+                <strong className="text-slate-800">SCL Trust Fusion:</strong>
+                <p className="text-[10px] text-slate-500">Generates per-pixel trust scores (0-1) penalizing cirrus and shadows.</p>
               </div>
             </div>
 
             <div className="flex items-start gap-2">
-              <span className="w-2 h-2 rounded-full bg-purple-500 mt-1 shrink-0" />
+              <span className="w-2 h-2 rounded-full bg-sky-600 mt-1 shrink-0" />
               <div>
-                <span className="font-medium text-slate-800">Cloud Shadows:</span>
-                <p className="text-slate-500 text-[10px] leading-tight">Segmented using solar geometry and cloud height models.</p>
+                <strong className="text-slate-800">Explainable Ranks:</strong>
+                <p className="text-[10px] text-slate-500">Decomposes scores by use-case (crop, flood, general).</p>
               </div>
             </div>
           </div>
         </div>
       </div>
 
-      {/* Footer information */}
+      {/* Footer information & disclaimer */}
       <div className="pt-4 border-t border-slate-200 text-[11px] text-slate-500 space-y-1">
         <div className="flex items-center justify-between">
-          <span className="font-medium text-slate-700">ClarityX v1.0</span>
-          <span className="inline-flex items-center gap-1 text-emerald-600 font-medium">
-            <CheckCircle2 className="w-3 h-3" /> System Ready
+          <span className="font-semibold text-slate-700">Cloud Breaker v1.0</span>
+          <span className="inline-flex items-center gap-1 text-emerald-600 font-mono text-[10px] font-medium">
+            <CheckCircle2 className="w-3 h-3" /> STAC Ready
           </span>
         </div>
-        <p className="text-[10px] text-slate-400">
-          Clean satellite quality intelligence
+        <p className="text-[10px] text-slate-400 leading-tight">
+          Decision support only, not an official warning system.
         </p>
       </div>
     </aside>

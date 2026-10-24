@@ -223,5 +223,222 @@ export const mockBackend = {
     memoryJobs = [...INITIAL_MOCK_JOBS];
     saveJobsToStorage(memoryJobs);
     return memoryJobs;
+  },
+
+  async searchScenes(payload: any) {
+    await new Promise((r) => setTimeout(r, 300));
+    const scenes = [
+      {
+        scene_id: "S2A_MSIL2A_20240712T164841_N0511_R069_T15TVH_DEMO",
+        title: "Iowa Corn Belt Field AOI (Crop Monitoring)",
+        sensor: "Sentinel-2 L2A",
+        datetime: "2024-07-12T16:48:41Z",
+        scene_cloud_cover_pct: 34.2,
+        processing_baseline: "05.11",
+        reflectance_offset: -1000,
+        bbox: [-93.65, 41.55, -93.58, 41.62],
+        thumbnail_url: "https://images.unsplash.com/photo-1500382017468-9049fed747ef?auto=format&fit=crop&w=400&q=80",
+        source_badge: "DEMO"
+      },
+      {
+        scene_id: "S2B_MSIL2A_20240608T103619_N0510_R008_T32ULA_DEMO",
+        title: "Rhine Valley Floodplain AOI (Flood Response)",
+        sensor: "Sentinel-2 L2A",
+        datetime: "2024-06-08T10:36:19Z",
+        scene_cloud_cover_pct: 48.0,
+        processing_baseline: "05.10",
+        reflectance_offset: -1000,
+        bbox: [7.55, 50.32, 7.64, 50.38],
+        thumbnail_url: "https://images.unsplash.com/photo-1470071459604-3b5ec3a7fe05?auto=format&fit=crop&w=400&q=80",
+        source_badge: "DEMO"
+      },
+      {
+        scene_id: "S2A_MSIL2A_20240114T185731_N0510_R113_T10SEG_DEMO",
+        title: "San Francisco Bay Coastal AOI (General)",
+        sensor: "Sentinel-2 L2A",
+        datetime: "2024-01-14T18:57:31Z",
+        scene_cloud_cover_pct: 52.8,
+        processing_baseline: "05.10",
+        reflectance_offset: -1000,
+        bbox: [-122.45, 37.75, -122.38, 37.81],
+        thumbnail_url: "https://images.unsplash.com/photo-1541872703-74c5e44368f9?auto=format&fit=crop&w=400&q=80",
+        source_badge: "DEMO"
+      },
+      {
+        scene_id: "S2B_MSIL2A_20240728T053649_N0511_R019_T43KDA_DEMO",
+        title: "Mumbai Monsoon Coastal Basin (Honest Empty State)",
+        sensor: "Sentinel-2 L2A",
+        datetime: "2024-07-28T05:36:49Z",
+        scene_cloud_cover_pct: 98.4,
+        processing_baseline: "05.11",
+        reflectance_offset: -1000,
+        bbox: [72.82, 18.95, 72.92, 19.05],
+        thumbnail_url: "https://images.unsplash.com/photo-1534447677768-be436bb09401?auto=format&fit=crop&w=400&q=80",
+        source_badge: "DEMO"
+      }
+    ];
+    return {
+      aoi_bbox: payload.aoi?.bbox || [-122.45, 37.75, -122.38, 37.81],
+      total_scenes_found: scenes.length,
+      scenes,
+      source: "Offline Cached STAC Benchmark Catalog",
+      notice: "Scene cloud % represents full 100km tile. Run analysis to compute exact AOI window usability."
+    };
+  },
+
+  async analyzeAOI(payload: any) {
+    await new Promise((r) => setTimeout(r, 400));
+    const newId = `cb-demo-${Math.floor(1000 + Math.random() * 9000)}`;
+    const isMumbai = payload.scene_id.includes("Mumbai") || payload.scene_id.includes("T43KDA");
+    const usable = isMumbai ? 0.8 : 84.6;
+
+    const newJob: Job = {
+      job_id: newId,
+      s3_key: `s2/${payload.scene_id}`,
+      filename: payload.scene_id,
+      sensor: "Sentinel-2 L2A",
+      engine: "deep",
+      created_at: new Date().toISOString(),
+      status: "done",
+      progress: 100,
+      duration_seconds: 4,
+      rgb_preview_url: "https://images.unsplash.com/photo-1541872703-74c5e44368f9?auto=format&fit=crop&w=1600&q=80",
+      mask_url: "https://images.unsplash.com/photo-1502134249126-9f3755a50d78?auto=format&fit=crop&w=1600&q=80",
+      bounds: {
+        location_name: "Selected AOI Field Window",
+        crs: "EPSG:32610",
+        resolution_m: 10,
+        center: [37.7749, -122.4194],
+        bbox: payload.aoi?.bbox || [-122.45, 37.75, -122.38, 37.81]
+      },
+      report: {
+        clarityscore: usable,
+        usable_land_percentage: usable,
+        cirrus_attenuation_factor: isMumbai ? 0.72 : 0.08,
+        shadow_impact_score: isMumbai ? 22.4 : 3.8,
+        downstream_usability_rating: {
+          ndvi: isMumbai ? 12.0 : 92.5,
+          building_seg: isMumbai ? 8.0 : 88.0,
+          change_detection: isMumbai ? 15.0 : 94.2
+        },
+        class_distribution: isMumbai ? {
+          clear: 0.8,
+          thick_cloud: 88.2,
+          thin_cirrus: 7.2,
+          shadow: 3.8
+        } : {
+          clear: 84.6,
+          thick_cloud: 4.8,
+          thin_cirrus: 7.2,
+          shadow: 3.4
+        },
+        per_band: [
+          { band: "B2 (Blue)", snr: 41.5, degradation: isMumbai ? 85.0 : 12.3 },
+          { band: "B3 (Green)", snr: 46.1, degradation: isMumbai ? 80.0 : 8.7 },
+          { band: "B4 (Red)", snr: 49.8, degradation: isMumbai ? 78.0 : 6.1 },
+          { band: "B8 (NIR)", snr: 55.4, degradation: isMumbai ? 72.0 : 4.1 },
+          { band: "B11 (SWIR)", snr: 48.3, degradation: isMumbai ? 65.0 : 7.2 }
+        ]
+      }
+    };
+
+    memoryJobs = [newJob, ...memoryJobs];
+    saveJobsToStorage(memoryJobs);
+
+    return {
+      job_id: newId,
+      status: "pending",
+      message: "Analysis dispatched."
+    };
+  },
+
+  async getResults(jobId: string) {
+    await new Promise((r) => setTimeout(r, 200));
+    const job = memoryJobs.find((j) => j.job_id === jobId) || memoryJobs[0];
+    const isMumbai = job.filename?.includes("Mumbai") || (job.report?.usable_land_percentage || 0) < 25;
+    const usable = job.report?.usable_land_percentage || 84.6;
+
+    return {
+      scene_id: job.filename || "S2A_MSIL2A_DEMO",
+      capture_date: job.created_at,
+      sensor: "Sentinel-2 L2A",
+      tile_id: "T10SEG",
+      processing_baseline: "05.10",
+      reflectance_offset: -1000,
+      crs: job.bounds?.crs || "EPSG:32610",
+      resolution_m: 10,
+      bbox: job.bounds?.bbox || [-122.45, 37.75, -122.38, 37.81],
+      center: job.bounds?.center || [37.7749, -122.4194],
+      source_badge: "DEMO",
+      usable_pct_inside_aoi: usable,
+      scene_level_cloud_pct: 48.5,
+      trust_score_summary: {
+        mean_trust: Number((usable / 100.0).toFixed(3)),
+        min_trust: isMumbai ? 0.0 : 0.15,
+        max_trust: 1.0
+      },
+      ranking: {
+        composite_score: usable,
+        usable_pct: usable,
+        cirrus_share: job.report?.cirrus_attenuation_factor ? job.report.cirrus_attenuation_factor * 100 : 8.0,
+        shadow_share: job.report?.shadow_impact_score || 4.0,
+        cloud_share: 100 - usable,
+        days_from_target: 0,
+        date_score: 100,
+        explanation: isMumbai 
+          ? "Severely obstructed AOI (0.8% clear); 88.2% thick convective clouds across field footprint." 
+          : `High AOI usability (${usable}% clear surface inside field window). Clearer than 100km tile average (48.5% cloud).`
+      },
+      reliable_scene: usable >= 25.0,
+      empty_state_recommendations: usable < 25.0 ? [
+        "High persistent monsoon cloud veil across target AOI (>75% obscured).",
+        "Recommendation 1: Broaden temporal search window by 2 to 4 weeks.",
+        "Recommendation 2: Switch to Sentinel-1 Synthetic Aperture Radar (SAR) for cloud-penetrating water/flood extent detection."
+      ] : [],
+      mask_url: job.mask_url,
+      trust_map_url: job.trust_map_url || job.mask_url,
+      rgb_preview_url: job.rgb_preview_url,
+      source_badges: {
+        usable_pct_inside_aoi: "DEMO",
+        scene_level_cloud_pct: "DEMO",
+        trust_score: "DEMO",
+        downstream_ratings: "ESTIMATE",
+        disclaimer: "decision support, not an official warning system"
+      }
+    };
+  },
+
+  async getExportReport(jobId: string) {
+    await new Promise((r) => setTimeout(r, 150));
+    return {
+      report_id: `REP-CB-${jobId}`,
+      generated_at: new Date().toISOString(),
+      software: "Cloud Breaker Intelligence Engine",
+      methodology: {
+        name: "Cloud Breaker AOI Window SCL & Trust Matrix Fusion",
+        version: "1.0.0-hackathon-release",
+        scl_classes_defined: 12,
+        clear_surface_classes: [4, 5, 6, 11],
+        cirrus_penalty_weight: 0.8,
+        shadow_penalty_weight: 1.2
+      },
+      stac_item: {
+        id: "S2A_MSIL2A_DEMO",
+        collection: "sentinel-2-l2a",
+        provider: "Microsoft Planetary Computer / Copernicus Data Space",
+        processing_baseline: "05.10",
+        reflectance_offset_applied: -1000,
+        offset_explanation: "ESA Sentinel-2 baseline 04.00+ applies -1000 DN radiometric offset to surface reflectance."
+      },
+      aoi_metrics: {
+        usable_pixel_percentage: 84.6
+      },
+      provenance: {
+        usable_pct_source: "DEMO",
+        trust_score_source: "DEMO",
+        license: "Creative Commons Attribution 4.0 International (CC BY 4.0)"
+      },
+      disclaimer: "Decision support, not an official warning system."
+    };
   }
 };

@@ -1,12 +1,8 @@
 import React from 'react';
-import { BrowserRouter, Routes, Route, Navigate, useLocation } from 'react-router-dom';
+import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import { AuthProvider, useAuth } from './context/AuthContext';
+import { AuthProvider } from './context/AuthContext';
 import { Navbar } from './components/common/Navbar';
-import { Sidebar } from './components/common/Sidebar';
-import { MockModeBanner } from './components/common/MockModeBanner';
-import { LoginPage } from './pages/LoginPage';
-import { DashboardPage } from './pages/DashboardPage';
 import { NewAnalysisPage } from './pages/NewAnalysisPage';
 import { JobDetailPage } from './pages/JobDetailPage';
 import { JobsListPage } from './pages/JobsListPage';
@@ -21,25 +17,13 @@ const queryClient = new QueryClient({
   },
 });
 
-// Protected Route wrapper
-const ProtectedLayout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const { isAuthenticated } = useAuth();
-  const location = useLocation();
-
-  if (!isAuthenticated) {
-    return <Navigate to="/login" state={{ from: location }} replace />;
-  }
-
+const AppLayout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   return (
-    <div className="min-h-screen bg-slate-50 flex flex-col text-slate-900 font-sans">
+    <div className="min-h-screen bg-slate-50 flex flex-col text-slate-900 font-sans antialiased">
       <Navbar />
-      <MockModeBanner />
-      <div className="flex-1 flex overflow-hidden">
-        <Sidebar />
-        <main className="flex-1 overflow-y-auto p-4 sm:p-6 lg:p-8 max-w-7xl mx-auto w-full">
-          {children}
-        </main>
-      </div>
+      <main className="flex-1 max-w-7xl mx-auto w-full px-4 sm:px-6 lg:px-8 py-6">
+        {children}
+      </main>
     </div>
   );
 };
@@ -47,44 +31,32 @@ const ProtectedLayout: React.FC<{ children: React.ReactNode }> = ({ children }) 
 export const AppContent: React.FC = () => {
   return (
     <Routes>
-      <Route path="/login" element={<LoginPage />} />
-
       <Route
         path="/"
         element={
-          <ProtectedLayout>
-            <DashboardPage />
-          </ProtectedLayout>
-        }
-      />
-
-      <Route
-        path="/new"
-        element={
-          <ProtectedLayout>
+          <AppLayout>
             <NewAnalysisPage />
-          </ProtectedLayout>
+          </AppLayout>
         }
       />
-
+      <Route path="/new" element={<Navigate to="/" replace />} />
       <Route
         path="/jobs"
         element={
-          <ProtectedLayout>
+          <AppLayout>
             <JobsListPage />
-          </ProtectedLayout>
+          </AppLayout>
         }
       />
-
       <Route
         path="/jobs/:id"
         element={
-          <ProtectedLayout>
+          <AppLayout>
             <JobDetailPage />
-          </ProtectedLayout>
+          </AppLayout>
         }
       />
-
+      <Route path="/login" element={<Navigate to="/" replace />} />
       <Route path="*" element={<Navigate to="/" replace />} />
     </Routes>
   );

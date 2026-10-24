@@ -178,4 +178,77 @@ export const api = {
       return mockBackend.getHealth();
     }
   },
+
+  // POST /api/search -> Search Sentinel-2 L2A scenes via STAC
+  async searchScenes(payload: {
+    aoi: { bbox?: number[]; coordinates?: number[][] };
+    start_date: string;
+    end_date: string;
+    max_cloud_cover?: number;
+    target_date?: string;
+    use_case?: string;
+  }): Promise<{ scenes: any[]; total_scenes_found: number; source: string; notice: string }> {
+    if (isForceMockMode()) {
+      return mockBackend.searchScenes(payload);
+    }
+
+    try {
+      const res = await axiosClient.post('/api/search', payload);
+      return res.data;
+    } catch (err) {
+      console.warn('Real API searchScenes failed, falling back to mock mode:', err);
+      return mockBackend.searchScenes(payload);
+    }
+  },
+
+  // POST /api/analyze -> Dispatch AOI window read & trust calculation
+  async analyzeAOI(payload: {
+    scene_id: string;
+    aoi: { bbox?: number[]; coordinates?: number[][] };
+    use_case: string;
+    target_date?: string;
+    method?: string;
+  }): Promise<{ job_id: string; status: string; message: string }> {
+    if (isForceMockMode()) {
+      return mockBackend.analyzeAOI(payload);
+    }
+
+    try {
+      const res = await axiosClient.post('/api/analyze', payload);
+      return res.data;
+    } catch (err) {
+      console.warn('Real API analyzeAOI failed, falling back to mock mode:', err);
+      return mockBackend.analyzeAOI(payload);
+    }
+  },
+
+  // GET /api/results/{id} -> Get full Cloud Breaker analysis result
+  async getResults(jobId: string): Promise<any> {
+    if (isForceMockMode()) {
+      return mockBackend.getResults(jobId);
+    }
+
+    try {
+      const res = await axiosClient.get(`/api/results/${jobId}`);
+      return res.data;
+    } catch (err) {
+      console.warn(`Real API getResults(${jobId}) failed, falling back to mock:`, err);
+      return mockBackend.getResults(jobId);
+    }
+  },
+
+  // GET /api/export/{id} -> Get reproducible report JSON
+  async getExportReport(jobId: string): Promise<any> {
+    if (isForceMockMode()) {
+      return mockBackend.getExportReport(jobId);
+    }
+
+    try {
+      const res = await axiosClient.get(`/api/export/${jobId}`);
+      return res.data;
+    } catch (err) {
+      console.warn(`Real API getExportReport(${jobId}) failed, falling back to mock:`, err);
+      return mockBackend.getExportReport(jobId);
+    }
+  },
 };

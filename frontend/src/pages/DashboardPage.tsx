@@ -13,6 +13,7 @@ import {
 import { useJobs } from '../hooks/useJobs';
 import { StatusBadge } from '../components/common/StatusBadge';
 import { ClarityScoreRing } from '../components/common/ClarityScoreRing';
+import { HonestDisclaimer } from '../components/common/HonestDisclaimer';
 
 export const DashboardPage: React.FC = () => {
   const { data: jobs = [], isLoading } = useJobs();
@@ -287,6 +288,9 @@ export const DashboardPage: React.FC = () => {
           </Link>
         </div>
       </div>
+
+      {/* Mandatory Honesty Notice */}
+      <HonestDisclaimer />
     </div>
   );
 };

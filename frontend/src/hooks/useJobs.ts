@@ -33,6 +33,24 @@ export const useJobDetail = (jobId: string | undefined) => {
   });
 };
 
+export const useCloudBreakerResults = (jobId: string | undefined) => {
+  return useQuery({
+    queryKey: ['cloudbreaker_result', jobId],
+    queryFn: () => {
+      if (!jobId) throw new Error('Job ID is required');
+      return api.getResults(jobId);
+    },
+    enabled: !!jobId,
+    refetchInterval: (query) => {
+      const res = query.state.data;
+      if (res && (res.status === 'pending' || res.status === 'running')) {
+        return 2500;
+      }
+      return false;
+    },
+  });
+};
+
 export const useHealth = () => {
   return useQuery({
     queryKey: ['health'],

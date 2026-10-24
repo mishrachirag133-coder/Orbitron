@@ -188,6 +188,13 @@ class JobsDatabase:
     def get_job(self, job_id: str) -> Optional[dict]:
         return self.jobs.get(job_id)
 
+    def update_job(self, job_id: str, updates: dict) -> Optional[dict]:
+        if job_id not in self.jobs:
+            self.jobs[job_id] = {"job_id": job_id}
+        self.jobs[job_id].update(updates)
+        self.jobs[job_id]["updated_at"] = datetime.datetime.utcnow().isoformat() + "Z"
+        return self.jobs[job_id]
+
     def add_job(self, payload: dict) -> dict:
         job_id = f"job-cx-{random.randint(10000, 99999)}-{payload.get('sensor', 'scene').lower().split('-')[0]}"
         now = datetime.datetime.utcnow().isoformat() + "Z"
